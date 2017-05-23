@@ -21,3 +21,6 @@ erl_crash.dump
 
 # vim swp
 *.swp
+
+# rounding tests in assembly
+roundingtest

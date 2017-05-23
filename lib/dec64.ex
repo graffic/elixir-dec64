@@ -25,9 +25,9 @@ defmodule Dec64 do
   def new(coefficient, exponent)
     when not int_b(coefficient, @min_c, @max_c) or exponent < -127
   do
-    extra = if (abs(rem(coefficient, 10)) > 4), do: 1, else: 0
-    extra = if (coefficient >= 0), do: extra, else: -extra
-    new(div(coefficient, 10) + extra, exponent + 1)
+    # No rounding here, but tests in the original asm implementation suggest
+    # there is some rounding here
+    new(div(coefficient, 10), exponent + 1)
   end
 
   def nan, do: <<0x80::64>>
