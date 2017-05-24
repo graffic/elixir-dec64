@@ -3,11 +3,23 @@ defmodule Dec64 do
 
   @min_c -36028797018963968
   @max_c 36028797018963967
+  @max_100_c 3602879701896396800
 
   defmacrop int_b(num, min, max) do
     quote do: unquote(num) >= unquote(min) and unquote(num) <= unquote(max)
   end
+  @doc """
+  Creates a new 64bit dec64 number.
 
+  1. If the coefficient is zero, the number is zero.
+  2. If the exponent is too big (in the positive side). Multiply by ten and
+     reduce the exponent one by one.
+  3. If the coefficient bigger than max_coeff * 100, do integer divisions to
+     make it smaller while increasing the exponent.
+  4. If the coefficient is still big or the exponent is too small: increase
+     it.
+
+  """
   def new(0, _), do: zero()
   def new(coefficient, exponent)
     when int_b(coefficient, @min_c, @max_c)
@@ -23,11 +35,25 @@ defmodule Dec64 do
     do: new(coefficient * 10, exponent - 1)
 
   def new(coefficient, exponent)
-    when not int_b(coefficient, @min_c, @max_c) or exponent < -127
+    when abs(coefficient) > @max_100_c
   do
-    # No rounding here, but tests in the original asm implementation suggest
-    # there is some rounding here
     new(div(coefficient, 10), exponent + 1)
+  end
+
+  def new(coefficient, exponent)
+    when abs(coefficient) > @max_c or exponent < -127
+  do
+    extra = if abs(coefficient) > 360287970189639679, do: 2, else: 1
+    difference = max(extra, -127 - exponent)
+    if difference >= 20 do
+      zero()
+    else
+      sign = if coefficient >= 0, do: 1, else: -1
+      almost_power = :math.pow(10, difference - 1) |> round
+      new(
+        div(coefficient + (sign * almost_power * 5), almost_power * 10),
+        exponent + difference)
+    end
   end
 
   def nan, do: <<0x80::64>>
