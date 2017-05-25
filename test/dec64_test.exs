@@ -76,8 +76,10 @@ defmodule Dec64Test do
         {3689348814741910499, 0, <<3689348814741910::56, 3>>},
         {-3689348814741910499, 0, <<-3689348814741910::56, 3>>},
         # The original test was this, but a converted asm for nasm
-        # Shows that it does not run
+        # shows that it's wrong
         #{-368934881474191049, 0, <<-368934881474191::56, 3>>},
+        # This seems the right test. Will check with a windows
+        # system later.
         {-368934881474191049, 0, <<-3689348814741910::56, 2>>},
         {-36893488147419104, 0, <<-3689348814741910::56, 1>>},
         {49, -129, Dec64.zero},

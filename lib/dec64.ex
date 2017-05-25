@@ -8,6 +8,7 @@ defmodule Dec64 do
   defmacrop int_b(num, min, max) do
     quote do: unquote(num) >= unquote(min) and unquote(num) <= unquote(max)
   end
+
   @doc """
   Creates a new 64bit dec64 number.
 
