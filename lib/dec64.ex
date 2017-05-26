@@ -1,8 +1,11 @@
 defmodule Dec64 do
   @type t :: <<_::64>>
 
+  # Minimum coefficient
   @min_c -36028797018963968
+  # Maximum coefficient
   @max_c 36028797018963967
+  # abs(min_coefficient) * 100
   @max_100_c 3602879701896396800
 
   defmacrop int_b(num, min, max) do
@@ -28,7 +31,7 @@ defmodule Dec64 do
     do: <<coefficient::56>> <> <<exponent::8>>
 
   def new(coefficient, exponent)
-    when exponent >= 127 and coefficient < @min_c,
+    when exponent >= 127 and not int_b(coefficient, @min_c, @max_c),
     do: nan()
 
   def new(coefficient, exponent)
@@ -56,6 +59,11 @@ defmodule Dec64 do
         exponent + difference)
     end
   end
+
+  def neg(<<_::56, exponent::8>>) when exponent === 128, do: nan()
+  def neg(<<coefficient::56, _::8>>) when coefficient === 0, do: zero()
+  def neg(<<coefficient::signed-integer-size(56), exponent::8>>),
+    do: Dec64.new(-coefficient, exponent)
 
   def nan, do: <<0x80::64>>
   def zero, do: <<0::64>>
